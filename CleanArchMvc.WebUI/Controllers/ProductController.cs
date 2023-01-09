@@ -1,15 +1,21 @@
-﻿using CleanArchMvc.Application.Interfaces;
+﻿using CleanArchMvc.Application.DTOs;
+using CleanArchMvc.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace CleanArchMvc.WebUI.Controllers
 {
     public class ProductController : Controller
     {
         private readonly IProductService _productService;
+        private readonly ICategoryService _categoryService;
+        private readonly IWebHostEnvironment _enviroment;
 
-        public ProductController(IProductService productService)
+        public ProductController(IProductService productService, ICategoryService categoryService, IWebHostEnvironment enviroment)
         {
             _productService = productService;
+            _categoryService = categoryService;
+            _enviroment = enviroment;
         }
 
         [HttpGet]
@@ -17,6 +23,96 @@ namespace CleanArchMvc.WebUI.Controllers
         {
             var products = await _productService.GetProducts();
             return View(products);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Create()
+        {
+            ViewBag.CategoryId = new SelectList(await _categoryService.GetCategories(), "Id", "Name");
+            return View();
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Edit(int? id)
+        {
+            if (id == null)
+                return NotFound();
+
+            var productDTO = await _productService.GetById(id);
+
+            if (productDTO == null)
+                return NotFound();
+
+            var categories = await _categoryService.GetCategories();
+
+            ViewBag.CategoryId = new SelectList(categories, "Id", "Name");
+
+            return View(productDTO);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Edit(ProductDTO product)
+        {
+            if (ModelState.IsValid)
+            {
+                await _productService.Update(product);
+                return RedirectToAction(nameof(Index));
+            }
+            ViewBag.CategoryId = new SelectList(await _categoryService.GetCategories(), "Id", "Name");
+            return View(product);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Create(ProductDTO product)
+        {
+            if (ModelState.IsValid)
+            {
+                await _productService.Add(product);
+                return RedirectToAction(nameof(Index));
+            }
+            ViewBag.CategoryId = new SelectList(await _categoryService.GetCategories(), "Id", "Name");
+            return View(product);
+        }
+
+
+        [HttpGet]
+        public async Task<IActionResult> Delete(int? id)
+        {
+            if (id == null)
+                return NotFound();
+
+            var productDTO = await _productService.GetById(id);
+
+            if (productDTO == null)
+                return NotFound();
+
+            return View(productDTO);
+        }
+
+        [HttpPost, ActionName("Delete")]
+        public async Task<IActionResult> DeleteConfirmed(int id)
+        {
+            await _productService.Remove(id);
+            return RedirectToAction(nameof(Index));
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Details(int? id)
+        {
+            if (id == null)
+                return NotFound();
+
+            var productDTO = await _productService.GetById(id);
+
+            if (productDTO == null)
+                return NotFound();
+
+            var wwwroot = _enviroment.WebRootPath;
+            var image = Path.Combine(wwwroot, "images\\" + productDTO.Image);
+            var exists = System.IO.File.Exists(image);
+            ViewBag.ImageExist = exists;
+
+            return View(productDTO);
         }
     }
 }

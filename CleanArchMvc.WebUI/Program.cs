@@ -1,8 +1,10 @@
+using CleanArchMvc.Domain.Account;
+using CleanArchMvc.Infra.Data.Identity;
 using CleanArchMvc.Infra.IoC;
 
 var builder = WebApplication.CreateBuilder(args);
 //var provider = builder.Services.BuildServiceProvider();
-//var configuration = provider.GetService<IConfiguration>();
+//var seedUserRoleInitial = provider.GetService<ISeedUserRoleInitial>();
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
@@ -24,6 +26,9 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+
+
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllerRoute(
