@@ -8,15 +8,22 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
 
+// Setting Swagger
+builder.Services.AddInfrastructureSwagger(builder.Configuration);
+
+
+// Setting the JWT token
+builder.Services.AddInfrastructureJWT(builder.Configuration);
+
+// Setting the interfaces, automap, mediator, identity
 builder.Services.AddInfrastructureAPI(builder.Configuration);
 
 // Ignoring JSON cyclic reference
-builder.Services.AddControllers().AddJsonOptions(options =>
-{
-    options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
-});
+//builder.Services.AddControllers().AddJsonOptions(options =>
+//{
+//    options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
+//});
 
 
 var app = builder.Build();
@@ -29,6 +36,9 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+// Show status of the code. Ex: 401 instead of undocumented, will show unauthorized
+app.UseStatusCodePages(); 
 
 app.UseAuthorization();
 

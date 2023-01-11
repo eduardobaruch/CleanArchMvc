@@ -25,7 +25,25 @@ namespace CleanArchMvc.API.Controllers
             _configuration = configuration;
         }
         [HttpPost("CreateUser")]
-        public async 
+        [ApiExplorerSettings(IgnoreApi = true)] //This way wont show on swagger
+        public async Task<ActionResult> CreateUser([FromBody] LoginModel userInfo)
+        {
+            if (userInfo == null)
+                return BadRequest();
+
+            var result = await _authentication.RegisterUserAsync(userInfo.Email, userInfo.Password);
+
+            if (result)
+            {
+                return Ok($"User {userInfo.Email} was created successfully.");
+            }
+            else
+            {
+                ModelState.AddModelError(string.Empty, "Could not register user.");
+                return BadRequest(ModelState);
+            }
+
+        }
 
         [HttpPost("LoginUser")]
         public async Task<ActionResult<UserToken>> Login([FromBody] LoginModel userInfo)
